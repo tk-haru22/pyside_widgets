@@ -1,11 +1,19 @@
+import sys
+
+from PySide6.QtCore import (
+    Slot,
+)
 from PySide6.QtGui import (
     QStandardItemModel,
     QStandardItem,
 )
 from PySide6.QtWidgets import (
-    QMainWindow,
+    QApplication,
     QComboBox,
+    QMainWindow,
     QTreeView,
+    QVBoxLayout,
+    QWidget,
 )
 
 
@@ -28,8 +36,10 @@ items = [
 
 class Window(QMainWindow):
 
-    def __init__(self, parent = ..., flags = ...):
-        super().__init__(parent, flags)
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle('MVC combobox')
+        self.setCentralWidget(QWidget(self))
         self.combo1 = QComboBox(self)
         self.combo2 = QComboBox(self)
         self.model = QStandardItemModel(self)
@@ -37,8 +47,17 @@ class Window(QMainWindow):
 
         self.setup_model()
         self.view.setModel(self.model)
+        self.view.header().hide()
         self.combo1.setModel(self.model)
         self.combo1.setRootModelIndex(self.root_index)
+        self.combo1.setCurrentIndex(-1)
+
+        layout = QVBoxLayout(self.centralWidget())
+        layout.addWidget(self.view)
+        layout.addWidget(self.combo1)
+        layout.addWidget(self.combo2)
+
+        self.combo1.currentIndexChanged.connect(self.on_combobox_changed)
 
     def setup_model(self):
         root_item = QStandardItem('root')
@@ -47,7 +66,7 @@ class Window(QMainWindow):
             QStandardItem('parent-item2'),
             QStandardItem('parent-item3'),
         ]
-        root_item.appendRow(parents)
+        root_item.appendRows(parents)
         child1 = [
             QStandardItem('child-item1'),
             QStandardItem('child-item2'),
@@ -55,7 +74,7 @@ class Window(QMainWindow):
             QStandardItem('child-item4'),
             QStandardItem('child-item5'),
         ]
-        parents[0].appendRow(child1)
+        parents[0].appendRows(child1)
         child2 = [
             QStandardItem('child-item6'),
             QStandardItem('child-item7'),
@@ -63,13 +82,29 @@ class Window(QMainWindow):
             QStandardItem('child-item9'),
             QStandardItem('child-item10'),
         ]
-        parents[1].appendRow(child2)
+        parents[1].appendRows(child2)
         child3 = [
             QStandardItem('child-item11'),
             QStandardItem('child-item12'),
             QStandardItem('child-item13'),
         ]
-        parents[2].appendRow(child3)
+        parents[2].appendRows(child3)
         self.model.appendRow(root_item)
-        
+
         self.root_index = root_item.index()
+
+    @Slot(int)
+    def on_combobox_changed(self, row):
+        index = self.model.index(row, 0, self.root_index)
+        if self.combo2.model() != self.model:
+            self.combo2.setModel(self.model)
+        self.combo2.setRootModelIndex(index)
+        self.combo2.setCurrentIndex(-1)
+
+
+if __name__ == '__main__':
+    app = QApplication()
+    win = Window()
+    win.show()
+    sys.exit(app.exec())
+
