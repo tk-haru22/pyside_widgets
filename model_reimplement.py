@@ -71,7 +71,7 @@ class ListModel(QAbstractItemModel):
         return len(self.items)
 
     def columnCount(self, /, parent: QModelIndex = ...) -> int:
-        # ListViewは 1列しか表示しないので1
+        # ListViewは 1列しか表示しない
         return 1
 
     def hasChildren(self, /, parent: QModelIndex = ...) -> bool:
