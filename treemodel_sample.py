@@ -60,11 +60,14 @@ class TreeModel(QAbstractItemModel):
         if not parent.isValid():
             parent_item = self.root_item
         if parent.isValid():
-            indices: list[QModelIndex] = []
-            current = parent
-            while current.isValid():
-                indices.append(current)
-                current = current.parent()
-            while indices:
-                parent_item = parent_item.child(indices.pop().row())
-        return self.createIndex(row, column, parent_item.child(row))
+            # parnet がルートインデックスで無ければすでに createIndex で
+            # インデックスが作られているので internalPointer が使える
+            parent_item = parent.internalPointer()
+        child_item = parent_item.child(row)
+        return self.createIndex(child_item.index(), column, child_item)
+
+    def parent(self, child: QModelIndex) -> None:
+        pointer: Item = child.internalPointer()
+        if pointer.parent is None:
+            return QModelIndex()
+        return self.index(pointer.index(), child.column(), child.parent())
